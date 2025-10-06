@@ -14,7 +14,7 @@ while [[ $# -gt 0 ]]; do
 	esac
 done
 
-declare -a okmounts
+declare -ax okmounts
 while read _ _ mount _; do
 	if ! timeout -k 9 5 /usr/local/sbin/cons_stat_smount.sh "$mount"; then
 		case "$SYSLOG" in
