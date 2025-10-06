@@ -2,7 +2,7 @@
 
 declare -a okmounts
 while read _ _ mount _; do
-	if ! timeout -k 9 5 /tmp/stat_mount.sh "$mount"; then
+	if ! timeout -k 9 5 /usr/local/sbin/cons_stat_smount.sh "$mount"; then
 		printf 'ERROR: Mount timeout on %b!\n' "$mount" >&2
 		exit 1
 	else
