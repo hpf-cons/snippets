@@ -27,6 +27,9 @@ while read _ _ mount _; do
 		esac
 		exit 1
 	else
+		if [ "$SYSLOG" -ne 0 ]; then
+			logger -p syslog.info -t cons_stat "CIFS Mount alive: $mount"
+		fi
 		okmounts=( ${okmounts[@]} "$mount" )
 	fi
 done < <(mount -t cifs)
