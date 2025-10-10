@@ -9,7 +9,8 @@ fi
 MYNAME="$(id -nu)"
 
 # Kill sensitive data like gpg-agent or ssh-agent, Ubuntu default does
-# no session housekeeping:
+# no session housekeeping. CAUTION: This is kinf of a "PoC" - it kills
+# on EVERY LOGOUT, no matter if there are other sessions for the same user.
 function session_terminate {
     mapfile -t GPGAGS < <(pgrep -u $(id -u) gpg-agent)
     logger -p user.notice -t 'bash_logout' "Found ${#GPGAGS[@]} gpg-agent processes to terminate."
