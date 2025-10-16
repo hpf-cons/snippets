@@ -1,0 +1,10 @@
+# vim:syntax=systemd
+[Unit]
+Description=Run session cleanup script for a single user
+Documentation=man:bash-builtins(7) man:kill(1)
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/session-terminate
+
+# No install section, we want to be triggered by a timer, or manually at most.

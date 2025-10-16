@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+
+# LICENCE: LGPLv3
+
+# Kill sensitive data like gpg-agent or ssh-agent, Ubuntu default does
+# no session housekeeping. Also, stop app.slice for user.
+function session_terminate {
+	mapfile -t GPGAGS < <(pgrep -u $(id -u) gpg-agent)
+	logger -p user.notice -t 'session_logout' "Found ${#GPGAGS[@]} gpg-agent process(es) to terminate."
+	for proc in "${GPGAGS[@]}"; do
+		kill "$proc"
+	done
+	sleep 0.271828
+	mapfile -t SSHAGS < <(pgrep -u $(id -u) ssh-agent)
+	logger -p user.notice -t 'session_logout' "Found ${#SSHAGS[@]} ssh-agent process(es) to terminate."
+	for proc in "${SSHAGS[@]}"; do
+		kill "$proc"
+	done
+	sleep 0.271828
+	if /usr/bin/systemctl --user stop app.slice; then
+		logger -p user.notice -t 'session_logout' 'Successfully terminated app.slice.'
+	else
+		logger -p user.warn -t 'session_logout' 'Couldn'\''t terminate app.slice.'
+	fi
+}
+
+case "$(who | grep -Pc "^$(id -nu)[\ \t]")" in
+	0)
+		logger -p user.notice -t 'session_logout' 'No more sessions remaining, clearing up on logout.'
+		session_terminate
+	;;
+	[1-9]*)
+		# not doing anything.
+		true
+	;;
+	*)
+		logger -p user.error -t 'session_logout' 'Cannot count active sessions, something went wrong.'
+	;;
+esac
