@@ -40,4 +40,13 @@ case "$ID_LIKE" in
 			/usr/bin/systemctl reboot
 		fi
 	;;
+	"redhat")
+		# we do not use --skip-broken here - we keep our systems tidy, so any pollution may and should
+		# cause an error :-)
+		/usr/bin/dnf -q makecache &&\
+		/usr/bin/dnf --comment='os_patching_adhoc' -q --obsoletes --best -y upgrade || exit 110
+		if ! dnf needs-restarting; then
+			/usr/bin/systemctl reboot
+		fi
+	;;
 esac
