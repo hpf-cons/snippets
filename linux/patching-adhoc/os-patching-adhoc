@@ -1,0 +1,43 @@
+#!/usr/bin/env sh
+# shellcheck disable=SC1091
+
+# Ad-hoc script for just patching the system.
+
+. /etc/os-release || exit 1
+
+if [ "$ID" = "debian" ]; then
+	ID_LIKE="debian"
+fi
+
+case "$ID_LIKE" in
+	"debian")
+		/usr/bin/apt -o 'Apt::Cmd::Disable-Script-Warning=true' -qqq update &&\
+		/usr/bin/apt -o 'Apt::Cmd::Disable-Script-Warning=true' -qqy full-upgrade &&\
+		/usr/bin/apt -o 'Apt::Cmd::Disable-Script-Warning=true' -qqy --purge autoremove || exit 110
+		/usr/bin/apt-file update || true
+		/usr/sbin/needrestart -b
+		if ! /usr/sbin/needrestart -p; then
+			/usr/bin/systemctl reboot
+		fi
+	;;
+	"suse")
+		# Caution:
+		# 1. Broken package dependenciers will not be solved
+		# 2. Orphaned packages will be kept in-place
+		/usr/bin/zypper refresh-services &&\
+		/usr/bin/zypper refresh &&\
+		/usr/bin/zypper --non-interactive-include-reboot-patches up --auto-agree-with-product-licenses --no-refresh &&\
+		/usr/bin/zypper --non-interactive-include-reboot-patches dup --allow-name-change --allow-arch-change --allow-vendor-change --no-allow-downgrade --no-refresh || exit 110
+		# zypper: why deliver exit codes WHEN WE CAN TOSS EFFIN STRINGS AT THE CONSOLE ONLY
+		# also... too many people rather tend to localise their systems....:
+		export LANG=C # use "C" as safe haven, we DO NOT want this to fail
+		# yes, in the very recent part they invented "needs-rebooting", but that only checks
+		# core services and libraries... :( so we do both here. We want to be rather aggressive
+		# on unattended updates in that we reboot if there are lingering "programs". Any of them.
+		if ! /usr/bin/zypper needs-rebooting; then
+			/usr/bin/systemctl reboot
+		elif [ "$(/usr/bin/zypper ps -sss | wc -l)" -gt 0 ]; then
+			/usr/bin/systemctl reboot
+		fi
+	;;
+esac
