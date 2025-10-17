@@ -45,7 +45,7 @@ case "$ID_LIKE" in
 		# cause an error :-)
 		/usr/bin/dnf -q makecache &&\
 		/usr/bin/dnf --comment='os_patching_adhoc' -q --obsoletes --best -y upgrade || exit 110
-		if ! dnf needs-restarting; then
+		if ! /usr/bin/dnf needs-restarting -r; then
 			/usr/bin/systemctl reboot
 		fi
 	;;
