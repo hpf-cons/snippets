@@ -5,7 +5,7 @@ Documentation=man:bash-builtins(7) man:kill(1)
 
 [Timer]
 OnCalendar=*-*-* *:00/15:00
-RandomDelaySec=15m
+RandomizedDelaySec=15m
 
 [Install]
 WantedBy=timers.target
